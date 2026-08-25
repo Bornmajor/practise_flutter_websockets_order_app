@@ -7,7 +7,8 @@ import 'package:practise_flutter_websockets_order_app/core/di/injection_containe
 import 'package:practise_flutter_websockets_order_app/features/menu/presentation/bloc/menu_bloc.dart';
 import 'package:practise_flutter_websockets_order_app/features/menu/presentation/bloc/menu_events.dart';
 import 'package:practise_flutter_websockets_order_app/features/menu/presentation/pages/menu_screen.dart';
-import 'package:practise_flutter_websockets_order_app/features/orders/presentation/order_screen.dart';
+import 'package:practise_flutter_websockets_order_app/features/orders/presentation/bloc/order_bloc.dart';
+import 'package:practise_flutter_websockets_order_app/features/orders/presentation/pages/order_screen.dart';
 
 // Key for the root navigator
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -18,7 +19,11 @@ final GoRouter router = GoRouter(
   routes: [
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
-        return ScaffoldWithNavbar(navigationShell: navigationShell);
+        //Wrap entire shell with OrderBloc
+        return BlocProvider<OrderBloc>(
+          create:(_) => sl<OrderBloc>(),
+          child:  ScaffoldWithNavbar(navigationShell: navigationShell)
+          );
       },
       branches: [
         //Menu branch
@@ -27,7 +32,7 @@ final GoRouter router = GoRouter(
             GoRoute(
               path: AppRoutes.menu.path,
               name: AppRoutes.menu.name,
-              builder: (context, state) => BlocProvider(
+              builder: (context, state) => BlocProvider<MenuBloc>(
                 create: (_) => sl<MenuBloc>()..add(FetchMenuItemsEvent()),
                 child: const MenuScreen(),
               ) ,

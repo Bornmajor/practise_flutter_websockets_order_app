@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:equatable/equatable.dart';
 import 'package:dio/dio.dart';
 
@@ -53,19 +54,29 @@ Failure handleDioException(DioException exception) {
     case DioExceptionType.connectionTimeout:
     case DioExceptionType.sendTimeout:
     case DioExceptionType.receiveTimeout:
+      return const ServerFailure('The server took too long to respond. Please try again.');
+
     case DioExceptionType.connectionError:
-      return const NetworkFailure();
+      final error = exception.error;
+      final uri = exception.requestOptions.uri;
+
+      if (error is SocketException) {
+        return ServerFailure(
+          'Could not connect to the backend server. Make sure it is running at ${uri.host}:${uri.port}.',
+        );
+      }
+
+      return const NetworkFailure('No internet connection. Check your network.');
 
     case DioExceptionType.badResponse:
       final statusCode = exception.response?.statusCode;
       final responseData = exception.response?.data;
 
-      // Extract server error message if available in API response body
       String errorMessage = 'Server returned error ($statusCode)';
       if (responseData is Map<String, dynamic>) {
-        errorMessage = responseData['message'] ?? 
-                       responseData['error'] ?? 
-                       errorMessage;
+        errorMessage = responseData['message'] ??
+            responseData['error'] ??
+            errorMessage;
       }
 
       return ServerFailure(errorMessage);

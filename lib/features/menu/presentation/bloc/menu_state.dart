@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:practise_flutter_websockets_order_app/features/menu/domain/entities/menu_item.dart';
 
+//TODO:(Research) Keep existing menu items list state across states
 abstract class MenuState extends Equatable {
   const MenuState();
 
