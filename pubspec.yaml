@@ -41,10 +41,12 @@ dependencies:
   dartz: ^0.10.1
   bloc_concurrency: ^0.3.0
   flutter_bloc: ^9.1.1
+  web_socket_channel: ^3.0.3
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  stream_channel: ^2.1.4
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

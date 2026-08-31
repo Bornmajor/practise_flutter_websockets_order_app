@@ -1,4 +1,3 @@
-import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import 'package:practise_flutter_websockets_order_app/core/config/app_config.dart';
@@ -9,10 +8,14 @@ import 'package:practise_flutter_websockets_order_app/features/menu/domain/repos
 import 'package:practise_flutter_websockets_order_app/features/menu/domain/usecases/get_menu_items_use_case.dart';
 import 'package:practise_flutter_websockets_order_app/features/menu/presentation/bloc/menu_bloc.dart';
 import 'package:practise_flutter_websockets_order_app/features/orders/data/datasources/order_remote_data_source.dart';
+import 'package:practise_flutter_websockets_order_app/features/orders/data/datasources/order_socket_data_source.dart';
 import 'package:practise_flutter_websockets_order_app/features/orders/data/repositories/order_repository_impl.dart';
 import 'package:practise_flutter_websockets_order_app/features/orders/domain/repositories/order_repository.dart';
+import 'package:practise_flutter_websockets_order_app/features/orders/domain/usecases/close_order_socket_use_case.dart';
 import 'package:practise_flutter_websockets_order_app/features/orders/domain/usecases/create_order_use_case.dart';
 import 'package:practise_flutter_websockets_order_app/features/orders/domain/usecases/get_orders_use_case.dart';
+import 'package:practise_flutter_websockets_order_app/features/orders/domain/usecases/subscribe_to_order_use_case.dart';
+import 'package:practise_flutter_websockets_order_app/features/orders/domain/usecases/watch_order_updates_use_case.dart';
 import 'package:practise_flutter_websockets_order_app/features/orders/presentation/bloc/order_bloc.dart';
 
 final sl = GetIt.instance;
@@ -33,14 +36,19 @@ Future<void> initServiceLocator() async {
   sl.registerLazySingleton<OrderRemoteDataSource>(
     () => OrderRemoteDataSourceImpl(dio: sl<Dio>()),
   );
+  sl.registerLazySingleton<OrderSocketDataSource>(
+    () => OrderSocketDataSourceImpl(appConfig: sl<AppConfig>()),
+  );
 
   // Register repositories (inject data sources)
   sl.registerLazySingleton<MenuRepository>(
     () => MenuRepositoryImpl(menuRemoteDataSource: sl<MenuRemoteDataSource>()),
   );
   sl.registerLazySingleton<OrderRepository>(
-    () =>
-        OrderRepositoryImpl(orderRemoteDataSource: sl<OrderRemoteDataSource>()),
+    () => OrderRepositoryImpl(
+      orderRemoteDataSource: sl<OrderRemoteDataSource>(),
+      orderSocketDataSource: sl<OrderSocketDataSource>(),
+    ),
   );
 
   //Register use cases (inject repositories)
@@ -53,6 +61,15 @@ Future<void> initServiceLocator() async {
   sl.registerLazySingleton<GetOrdersUseCase>(
     () => GetOrdersUseCase(orderRepository: sl<OrderRepository>()),
   );
+  sl.registerLazySingleton<SubscribeToOrderUseCase>(
+    () => SubscribeToOrderUseCase(orderRepository: sl<OrderRepository>()),
+  );
+  sl.registerLazySingleton<WatchOrderUpdatesUseCase>(
+    () => WatchOrderUpdatesUseCase(orderRepository: sl<OrderRepository>()),
+  );
+  sl.registerLazySingleton<CloseOrderSocketUseCase>(
+    () => CloseOrderSocketUseCase(orderRepository: sl<OrderRepository>()),
+  );
 
   // Blocs (inject use cases)
   sl.registerFactory(
@@ -63,6 +80,9 @@ Future<void> initServiceLocator() async {
     () => OrderBloc(
       createOrderUseCase: sl<CreateOrderUseCase>(),
       getOrdersUseCase: sl<GetOrdersUseCase>(),
+      subscribeToOrderUseCase: sl<SubscribeToOrderUseCase>(),
+      watchOrderUpdatesUseCase: sl<WatchOrderUpdatesUseCase>(),
+      closeOrderSocketUseCase: sl<CloseOrderSocketUseCase>(),
     ),
   );
 }

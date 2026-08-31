@@ -1,0 +1,5 @@
+{
+  "BASE_URL": "https://api.example.com/api",
+  "SOCKET_URL": "wss://api.example.com",
+  "API_KEY": "public-client-api-key"
+}
