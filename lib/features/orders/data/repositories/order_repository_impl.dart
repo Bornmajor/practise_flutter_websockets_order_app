@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:practise_flutter_websockets_order_app/core/error/failures.dart';
@@ -53,14 +55,14 @@ class OrderRepositoryImpl implements OrderRepository {
   }
 
   @override
-  Stream<Either<Failure, OrderItem>> watchOrderUpdates() async* {
-    try {
-      await for (final order in orderSocketDataSource.statusUpdates) {
-        yield Right(order);
-      }
-    } catch (error) {
-      yield Left(UnknownFailure(error.toString()));
-    }
+  Stream<Either<Failure, OrderItem>> watchOrderUpdates() {
+    return orderSocketDataSource.statusUpdates.transform(
+      StreamTransformer<OrderItem, Either<Failure, OrderItem>>.fromHandlers(
+        handleData: (order, sink) => sink.add(Right(order)),
+        handleError: (error, stackTrace, sink) =>
+            sink.add(Left(UnknownFailure(error.toString()))),
+      ),
+    );
   }
 
   @override

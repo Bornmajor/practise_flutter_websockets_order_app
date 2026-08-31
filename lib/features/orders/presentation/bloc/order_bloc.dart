@@ -75,7 +75,12 @@ Future<void> _onPlaceOrder(
     final result = await getOrdersUseCase();
 
     result.fold(
-      (failure) => emit(OrderErrorState(message: failure.message)), 
+      (failure) => emit(
+        OrderErrorState(
+          message: failure.message,
+          listOrderItems: existingOrders,
+        ),
+      ),
       (orderItems) {
         emit(OrderLoadedState(listOrderItems: orderItems));
         for (final order in orderItems) {
@@ -89,6 +94,7 @@ Future<void> _onPlaceOrder(
   void _listenToOrderUpdates() {
     // receives the WebSocket stream from the repository/data source.
     _orderUpdatesSubscription = watchOrderUpdatesUseCase().listen((result) {
+      if (isClosed) return;
       result.fold(
         (failure) => add(OrderSocketErrorEvent(message: failure.message)),
         (order) => add(OrderStatusUpdatedEvent(order: order)),
@@ -98,6 +104,7 @@ Future<void> _onPlaceOrder(
 
   Future<void> _subscribeToOrder(String orderId) async {
     final result = await subscribeToOrderUseCase(orderId);
+    if (isClosed) return;
     result.fold(
       (failure) => add(OrderSocketErrorEvent(message: failure.message)),
       (_) {},

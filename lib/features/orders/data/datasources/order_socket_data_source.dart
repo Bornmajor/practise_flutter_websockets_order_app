@@ -79,6 +79,8 @@ class OrderSocketDataSourceImpl implements OrderSocketDataSource {
       onError: (Object error, StackTrace stackTrace) {
         // Forward raw stream errors to the main status update controller.
         _statusUpdatesController.addError(error, stackTrace);
+        // Treat the error the same as a disconnect so reconnect logic runs.
+        _handleDisconnected();
       },
       onDone: _handleDisconnected, // Invoked when the socket connection drops or completes.
     );
